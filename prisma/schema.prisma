@@ -1,0 +1,213 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String
+  password     String // Hashed
+  role         String        @default("admin") // admin, member
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  activityLogs ActivityLog[]
+}
+
+model Company {
+  id              String      @id @default(uuid())
+  name            String      @default("WEBWORK STUDIOS")
+  logoUrl         String? // Optional base64 or path to logo
+  signatureUrl    String? // Base64 or path of authorized signature
+  email           String      @default("rccindia@webworksstudios.com")
+  phone           String      @default("+91 8208650416")
+  website         String      @default("www.webworksstudios.com")
+  gstin           String      @default("27ABCDE1234F1Z5")
+  pan             String      @default("ABCDE1234F")
+  address         String      @default("507 Rudrangan, JSPM Road, Narhe, Pune District, Maharashtra, India - 411041")
+  bankName        String      @default("MGB")
+  accountNumber   String      @default("80102256281")
+  ifscCode        String      @default("MAHG0004413")
+  upiId           String      @default("sureshgaikwad2295-1@okicici")
+  qrCodeUrl       String? // Dynamic or uploaded QR code image
+  currency        String      @default("INR")
+  invoicePrefix   String      @default("IN-")
+  quotationPrefix String      @default("QT-")
+  receiptPrefix   String      @default("REC-")
+  autoNumber      Int         @default(1)
+  primaryColor    String      @default("#0B1F3A")
+  accentColor     String      @default("#2563EB")
+  isDarkMode      Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  clients         Client[]
+  products        Product[]
+  invoices        Invoice[]
+  quotations      Quotation[]
+  receipts        Receipt[]
+}
+
+model Client {
+  id                String      @id @default(uuid())
+  companyId         String
+  company           Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyName       String // e.g. VANNTAGE CFO Services LLP
+  clientName        String // Main contact name
+  gstNumber         String?
+  pan               String?
+  phone             String?
+  email             String      @unique
+  website           String?
+  billingAddress    String
+  shippingAddress   String?
+  paymentTerms      String      @default("30 Days") // Net 30, etc.
+  outstandingAmount Float       @default(0.0)
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  invoices          Invoice[]
+  quotations        Quotation[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  serviceName String // Name of the service or product
+  description String?
+  unit        String   @default("Qty") // Qty, Hours, etc.
+  price       Float    @default(0.0)
+  gstRate     Float    @default(0.0) // 0%, 5%, 12%, 18%, 28%
+  hsnSac      String?
+  category    String?
+  status      String   @default("active") // active, inactive
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Invoice {
+  id               String        @id @default(uuid())
+  companyId        String
+  company          Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  clientId         String
+  client           Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  invoiceNumber    String        @unique // e.g. IN-020
+  invoiceDate      DateTime      @default(now())
+  dueDate          DateTime
+  referenceNumber  String?
+  status           String        @default("Draft") // Draft, Sent, Paid, Overdue, Cancelled
+  subtotal         Float         @default(0.0)
+  discount         Float         @default(0.0)
+  taxRate          Float         @default(0.0) // Overall average or 0
+  cgst             Float         @default(0.0)
+  sgst             Float         @default(0.0)
+  igst             Float         @default(0.0)
+  grandTotal       Float         @default(0.0)
+  remainingBalance Float         @default(0.0)
+  notes            String?       @default("Thank you for your business and the trust you place in us.")
+  terms            String?       @default("Payment is due within 30 days from the invoice date.\nLate payments may incur additional charges.\nAll disputes are subject to Pune jurisdiction.")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  items            InvoiceItem[]
+  receipts         Receipt[]
+  payments         Payment[]
+}
+
+model InvoiceItem {
+  id          String  @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float   @default(1.0)
+  unit        String  @default("Qty")
+  rate        Float   @default(0.0)
+  discount    Float   @default(0.0)
+  gstRate     Float   @default(0.0)
+  gstAmount   Float   @default(0.0)
+  total       Float   @default(0.0)
+}
+
+model Quotation {
+  id              String          @id @default(uuid())
+  companyId       String
+  company         Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  clientId        String
+  client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  quotationNumber String          @unique // e.g. QT-0001
+  invoiceDate     DateTime        @default(now()) // Prepared Date
+  validityDate    DateTime
+  referenceNumber String?
+  preparedBy      String          @default("WEBWORK STUDIOS")
+  revisionNumber  Int             @default(0)
+  status          String          @default("Draft") // Draft, Sent, Accepted, Rejected, Expired
+  subtotal        Float           @default(0.0)
+  discount        Float           @default(0.0)
+  taxRate         Float           @default(0.0)
+  cgst            Float           @default(0.0)
+  sgst            Float           @default(0.0)
+  igst            Float           @default(0.0)
+  grandTotal      Float           @default(0.0)
+  acceptedBy      String?
+  acceptedDate    DateTime?
+  notes           String?         @default("Thank you for your business and the trust you place in us.")
+  terms           String?         @default("This quotation is valid until the validity date.\nPayment terms are net 30 days after invoice issuance.")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  items           QuotationItem[]
+}
+
+model QuotationItem {
+  id          String    @id @default(uuid())
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float     @default(1.0)
+  unit        String    @default("Qty")
+  rate        Float     @default(0.0)
+  discount    Float     @default(0.0)
+  gstRate     Float     @default(0.0)
+  gstAmount   Float     @default(0.0)
+  total       Float     @default(0.0)
+}
+
+model Receipt {
+  id            String   @id @default(uuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  receiptNumber String   @unique // e.g. REC-0001
+  paymentDate   DateTime @default(now())
+  receivedFrom  String
+  paymentMethod String   @default("UPI") // UPI, Bank Transfer, Cash, Check
+  transactionId String?
+  amountPaid    Float    @default(0.0)
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount        Float    @default(0.0)
+  paymentDate   DateTime @default(now())
+  paymentMethod String   @default("UPI")
+  transactionId String?
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}
