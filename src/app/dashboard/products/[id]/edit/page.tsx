@@ -15,11 +15,14 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     notFound();
   }
 
-  // Bind the ID to the server action
-  const updateProductWithId = updateProduct.bind(null, product.id);
+  // Wrapper to satisfy TypeScript for form action
+  const submitAction = async (formData: FormData) => {
+    "use server";
+    await updateProduct(product.id, formData);
+  };
 
   return (
-    <form action={updateProductWithId} className="max-w-3xl mx-auto pb-12">
+    <form action={submitAction} className="max-w-3xl mx-auto pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div className="flex items-center gap-3">

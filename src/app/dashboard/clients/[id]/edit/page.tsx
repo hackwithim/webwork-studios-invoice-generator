@@ -14,12 +14,15 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
     notFound();
   }
 
-  // We need to bind the updateClient action with the ID
-  const updateClientWithId = updateClient.bind(null, client.id);
+  // Wrapper to satisfy TypeScript for form action
+  const submitAction = async (formData: FormData) => {
+    "use server";
+    await updateClient(client.id, formData);
+  };
 
   return (
     <div className="max-w-4xl mx-auto pb-12">
-      <form action={updateClientWithId}>
+      <form action={submitAction}>
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="flex items-center gap-3">

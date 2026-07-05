@@ -32,7 +32,7 @@ export default function DashboardChart({ data }: { data: any[] }) {
           />
           <Tooltip 
             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
-            formatter={(value: number) => [formatCurrency(value), "Revenue"]}
+            formatter={(value: any) => [formatCurrency(value as number), "Revenue"]}
           />
           <Area type="monotone" dataKey="total" stroke="#2563EB" strokeWidth={2} fillOpacity={1} fill="url(#colorTotal)" />
         </AreaChart>

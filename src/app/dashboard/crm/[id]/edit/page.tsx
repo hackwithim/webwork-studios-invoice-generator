@@ -11,8 +11,11 @@ export default async function EditLeadPage({ params }: { params: { id: string } 
     notFound();
   }
 
-  // We need to bind the id to the server action
-  const updateLeadWithId = updateLead.bind(null, id);
+  // Wrapper to satisfy TypeScript for form action
+  const submitAction = async (formData: FormData) => {
+    "use server";
+    await updateLead(id, formData);
+  };
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -29,7 +32,7 @@ export default async function EditLeadPage({ params }: { params: { id: string } 
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <form action={updateLeadWithId} className="p-6 space-y-6">
+        <form action={submitAction} className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Contact Name *</label>

@@ -91,7 +91,7 @@ OUTPUT NOTHING BUT THE RAW JSON OBJECT. NO EXPLANATIONS. NO PREAMBLE. NO CONVERS
     // Clean up potential markdown formatting from the response
     let cleanJsonString = aiResponseText.replace(/```json\n?|```\n?/g, "").trim();
     
-    let parsedIntent;
+    let parsedIntent: any;
     try {
       parsedIntent = JSON.parse(cleanJsonString);
     } catch (e) {
@@ -187,7 +187,7 @@ OUTPUT NOTHING BUT THE RAW JSON OBJECT. NO EXPLANATIONS. NO PREAMBLE. NO CONVERS
 
       return NextResponse.json({ 
         success: true, 
-        message: `Successfully dispatched WhatsApp to ${targetContact.name || (targetContact as any).clientName}`,
+        message: `Successfully dispatched WhatsApp to ${(targetContact as any).name || (targetContact as any).clientName}`,
         ai_intent: parsedIntent,
         dispatch_result: result 
       });
@@ -217,7 +217,7 @@ OUTPUT NOTHING BUT THE RAW JSON OBJECT. NO EXPLANATIONS. NO PREAMBLE. NO CONVERS
 
       return NextResponse.json({ 
         success: true, 
-        message: `Successfully dispatched Email to ${targetContact.name || (targetContact as any).clientName}`,
+        message: `Successfully dispatched Email to ${(targetContact as any).name || (targetContact as any).clientName}`,
         ai_intent: parsedIntent,
         dispatch_result: result 
       });

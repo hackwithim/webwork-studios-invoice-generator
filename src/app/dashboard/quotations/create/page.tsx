@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { motion } from "framer-motion";
 import { ArrowLeft, Save, Plus, Trash2, Calendar, FileText, User } from "lucide-react";
@@ -28,7 +28,7 @@ type FormValues = {
   taxRate: number;
 };
 
-export default function CreateQuotationPage() {
+function CreateQuotationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -405,5 +405,13 @@ export default function CreateQuotationPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function CreateQuotationPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading editor...</div>}>
+      <CreateQuotationContent />
+    </Suspense>
   );
 }

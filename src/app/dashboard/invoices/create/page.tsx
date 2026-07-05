@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { motion } from "framer-motion";
 import { ArrowLeft, Save, Plus, Trash2, Calendar, FileText, User } from "lucide-react";
@@ -28,7 +28,7 @@ type FormValues = {
   taxRate: number;
 };
 
-export default function CreateInvoicePage() {
+function CreateInvoiceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -406,5 +406,13 @@ export default function CreateInvoicePage() {
 
       </div>
     </div>
+  );
+}
+
+export default function CreateInvoicePage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading editor...</div>}>
+      <CreateInvoiceContent />
+    </Suspense>
   );
 }

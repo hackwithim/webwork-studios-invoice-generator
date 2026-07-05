@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { ArrowLeft, Save, Calendar, FileText, User } from "lucide-react";
@@ -22,7 +22,7 @@ type FormValues = {
   terms: string;
 };
 
-export default function CreateReceiptPage() {
+function CreateReceiptContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -313,5 +313,13 @@ export default function CreateReceiptPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function CreateReceiptPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading editor...</div>}>
+      <CreateReceiptContent />
+    </Suspense>
   );
 }
