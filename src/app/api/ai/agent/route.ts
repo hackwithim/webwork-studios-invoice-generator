@@ -3,16 +3,8 @@ import OpenAI from "openai";
 import prisma from "@/lib/prisma";
 import { getCompany } from "@/actions/company";
 
-// API Keys provided by the user for specific models
-const MODEL_KEYS: Record<string, string> = {
-  "z-ai/glm-5.2": "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",
-  "minimaxai/minimax-m3": "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",
-  "google/diffusiongemma-26b-a4b-it": "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",
-  "moonshotai/kimi-k2.6": "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",
-  "deepseek-ai/deepseek-v4-pro": "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",
-  "deepseek-ai/deepseek-v4-flash": "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",
-  "google/gemma-4-31b-it": "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",
-};
+// Move API Keys to environment variables
+const MODEL_KEYS: Record<string, string> = {};
 
 export const dynamic = 'force-dynamic';
 
@@ -72,8 +64,11 @@ Rules:
 OUTPUT NOTHING BUT THE RAW JSON OBJECT. NO EXPLANATIONS. NO PREAMBLE. NO CONVERSATIONAL TEXT.`;
 
     const selectedModel = model || "meta/llama-3.1-70b-instruct";
-    const fallbackNvidiaKey = "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";
-    const apiKey = MODEL_KEYS[selectedModel] || process.env.NVIDIA_API_KEY || fallbackNvidiaKey;
+    const apiKey = MODEL_KEYS[selectedModel] || process.env.NVIDIA_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json({ error: "NVIDIA_API_KEY is not configured in environment variables." }, { status: 500 });
+    }
 
     // Instantiate client dynamically per request to use the correct API key
     const openai = new OpenAI({

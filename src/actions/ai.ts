@@ -1,10 +1,10 @@
 "use server";
 
 export async function generateAIText(prompt: string, context?: string) {
-  const apiKey = process.env.NVIDIA_API_KEY || "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";
+  const apiKey = process.env.NVIDIA_API_KEY;
   
   if (!apiKey) {
-    return { success: false, error: "API key is not configured." };
+    return { success: false, error: "NVIDIA_API_KEY is not configured in environment variables." };
   }
 
   const systemMessage = "You are a professional AI assistant integrated into a B2B invoicing application for Webwork Studios. Your job is to write crisp, highly professional, and perfectly formatted descriptions, terms, and notes for invoices, services, and products. Never output markdown formatting or bullet points unless requested. Keep it extremely concise and directly usable in a text input field.";
