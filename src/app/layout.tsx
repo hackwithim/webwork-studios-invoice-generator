@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
-import { Toaster } from "sonner";
+import { Toaster as SonnerToaster } from "sonner";
+import { Toaster as HotToaster } from "react-hot-toast";
+import CommandPalette from "@/components/command-palette";
 import "./globals.css";
 
 const inter = Inter({
@@ -31,10 +33,13 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${poppins.variable} h-full antialiased font-sans`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-brand-bg text-primary">
+      <body className="min-h-full flex flex-col bg-brand-bg text-primary" suppressHydrationWarning>
         <main className="flex-1 flex flex-col">{children}</main>
-        <Toaster position="top-right" richColors closeButton theme="light" />
+        <SonnerToaster position="top-right" richColors />
+        <HotToaster position="top-center" />
+        <CommandPalette />
       </body>
     </html>
   );

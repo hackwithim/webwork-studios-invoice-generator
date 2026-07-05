@@ -29,7 +29,8 @@ model Company {
   gstin           String      @default("27ABCDE1234F1Z5")
   pan             String      @default("ABCDE1234F")
   address         String      @default("507 Rudrangan, JSPM Road, Narhe, Pune District, Maharashtra, India - 411041")
-  bankName        String      @default("MGB")
+  accountName     String      @default("Webwork Studios LLP")
+  bankName        String      @default("Maharashtra Gramin Bank")
   accountNumber   String      @default("80102256281")
   ifscCode        String      @default("MAHG0004413")
   upiId           String      @default("sureshgaikwad2295-1@okicici")
@@ -42,6 +43,12 @@ model Company {
   primaryColor    String      @default("#0B1F3A")
   accentColor     String      @default("#2563EB")
   isDarkMode      Boolean     @default(false)
+  googleDriveKey  String?
+  smtpHost        String?
+  smtpPort        Int?
+  smtpUser        String?
+  smtpPassword    String?
+  whatsappSession String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   clients         Client[]
@@ -49,6 +56,8 @@ model Company {
   invoices        Invoice[]
   quotations      Quotation[]
   receipts        Receipt[]
+  leads           Lead[]
+  communications  CommunicationLog[]
 }
 
 model Client {
@@ -71,6 +80,7 @@ model Client {
   updatedAt         DateTime    @updatedAt
   invoices          Invoice[]
   quotations        Quotation[]
+  communications    CommunicationLog[]
 }
 
 model Product {
@@ -110,6 +120,7 @@ model Invoice {
   remainingBalance Float         @default(0.0)
   notes            String?       @default("Thank you for your business and the trust you place in us.")
   terms            String?       @default("Payment is due within 30 days from the invoice date.\nLate payments may incur additional charges.\nAll disputes are subject to Pune jurisdiction.")
+  driveFileId      String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   items            InvoiceItem[]
@@ -155,6 +166,7 @@ model Quotation {
   acceptedDate    DateTime?
   notes           String?         @default("Thank you for your business and the trust you place in us.")
   terms           String?         @default("This quotation is valid until the validity date.\nPayment terms are net 30 days after invoice issuance.")
+  driveFileId     String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   items           QuotationItem[]
@@ -187,6 +199,7 @@ model Receipt {
   transactionId String?
   amountPaid    Float    @default(0.0)
   remarks       String?
+  driveFileId   String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -210,4 +223,38 @@ model ActivityLog {
   action    String
   details   String?
   createdAt DateTime @default(now())
+}
+
+model Lead {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name            String
+  email           String?
+  phone           String?
+  companyName     String?
+  status          String   @default("NEW") // NEW, CONTACTED, QUALIFIED, LOST, CONVERTED
+  score           Int      @default(0)
+  notes           String?
+  source          String?  // e.g., Website, LinkedIn, Referral
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  communications  CommunicationLog[]
+}
+
+model CommunicationLog {
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  leadId      String?
+  lead        Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  clientId    String?
+  client      Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type        String   // EMAIL, WHATSAPP
+  direction   String   @default("OUTBOUND") // OUTBOUND, INBOUND
+  status      String   @default("SENT") // PENDING, SENT, FAILED, DELIVERED, READ
+  subject     String?  // For emails
+  content     String
+  metadata    String?  // JSON string for extra data like message ID, error messages
+  createdAt   DateTime @default(now())
 }

@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "standalone",
+  serverExternalPackages: ["whatsapp-web.js", "puppeteer"],
+  serverActions: {
+    bodySizeLimit: "10mb",
+  },
 };
 
 export default nextConfig;
