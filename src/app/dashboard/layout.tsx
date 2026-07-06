@@ -2,6 +2,8 @@ import Sidebar from "@/components/sidebar";
 import TopBar from "@/components/topbar";
 import DriveVerifier from "@/components/drive-verifier";
 
+export const dynamic = "force-dynamic";
+
 export default function DashboardLayout({
   children,
 }: {
