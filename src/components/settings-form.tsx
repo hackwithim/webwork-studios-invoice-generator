@@ -161,7 +161,7 @@ export default function SettingsForm() {
             <form onSubmit={handleVerifyOtp} className="space-y-5">
               <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 mb-4">
                 <p className="text-sm text-accent font-medium">
-                  We've sent a 6-digit OTP to the founder at <strong>founder@webworksstudios.com</strong> to approve this change.
+                  We&apos;ve sent a 6-digit OTP to the founder at <strong>founder@webworksstudios.com</strong> to approve this change.
                 </p>
               </div>
 

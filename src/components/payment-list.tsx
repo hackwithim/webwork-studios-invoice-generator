@@ -109,7 +109,7 @@ export default function PaymentList({ initialPayments }: { initialPayments: any[
                 <Wallet size={24} />
               </div>
               <h3 className="text-base font-bold text-primary mb-1">No payments found</h3>
-              <p className="text-sm text-slate-500 mb-6">You haven't recorded any payments yet.</p>
+              <p className="text-sm text-slate-500 mb-6">You haven&apos;t recorded any payments yet.</p>
               <Link href="/dashboard/receipts/create" className="inline-flex h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium items-center justify-center gap-2 hover:bg-primary/90 transition-colors shadow-sm">
                 <Plus size={16} />
                 Record a Payment

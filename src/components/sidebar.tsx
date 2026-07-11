@@ -54,7 +54,7 @@ export default function Sidebar() {
     ...currentNavItems
   ];
 
-  const SidebarContent = () => (
+  const renderSidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="px-6 py-5 border-b border-slate-100">
@@ -120,7 +120,7 @@ export default function Sidebar() {
     <>
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-60 bg-white border-r border-slate-100 min-h-screen flex-shrink-0">
-        <SidebarContent />
+        {renderSidebarContent()}
       </aside>
 
       {/* Mobile toggle */}
@@ -156,7 +156,7 @@ export default function Sidebar() {
               >
                 <X size={18} />
               </button>
-              <SidebarContent />
+              {renderSidebarContent()}
             </motion.aside>
           </>
         )}

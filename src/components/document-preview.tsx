@@ -19,6 +19,9 @@ export default function DocumentPreview({ type, data, company, isServerPreview =
   const [isSavingToDrive, setIsSavingToDrive] = useState(false);
   const hasAutoSaved = useRef(false);
 
+  // Determine field names based on type
+  const numberField = type === "Quotation" ? data.quotationNumber : type === "Receipt" ? data.receiptNumber : data.invoiceNumber;
+
   const handleSaveToDrive = async () => {
     if (!printRef.current || isSavingToDrive) return;
     setIsSavingToDrive(true);
@@ -107,8 +110,6 @@ export default function DocumentPreview({ type, data, company, isServerPreview =
     window.print();
   };
 
-  // Determine field names based on type
-  const numberField = type === "Quotation" ? data.quotationNumber : type === "Receipt" ? data.receiptNumber : data.invoiceNumber;
   const date1Label = type === "Quotation" ? "Quote Date" : type === "Receipt" ? "Payment Date" : "Issue Date";
   const date1Value = type === "Receipt" ? data.paymentDate : data.invoiceDate;
   const date2Label = type === "Quotation" ? "Valid Until" : type === "Receipt" ? "Reference" : "Due Date";
