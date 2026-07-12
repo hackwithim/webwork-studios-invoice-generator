@@ -3,8 +3,10 @@
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { formatCurrency } from "@/lib/utils";
-import { Printer, Download, Share2, Cloud, Loader2 } from "lucide-react";
+import { Printer, Download, Share2, Cloud, Loader2, Mail } from "lucide-react";
 import toast from "react-hot-toast";
+import EmailModal from "@/components/email-modal";
+import { sendInvoiceEmail, sendQuotationEmail, sendReceiptEmail } from "@/actions/email";
 
 interface DocumentPreviewProps {
   type: "Invoice" | "Quotation" | "Receipt";
@@ -17,10 +19,87 @@ interface DocumentPreviewProps {
 export default function DocumentPreview({ type, data, company, isServerPreview = false, isBulkBackup = false }: DocumentPreviewProps) {
   const printRef = useRef<HTMLDivElement>(null);
   const [isSavingToDrive, setIsSavingToDrive] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const hasAutoSaved = useRef(false);
 
   // Determine field names based on type
   const numberField = type === "Quotation" ? data.quotationNumber : type === "Receipt" ? data.receiptNumber : data.invoiceNumber;
+
+  const handleSendEmail = async (customMessage: string) => {
+    const { toJpeg } = await import("html-to-image");
+    const { jsPDF } = await import("jspdf");
+    
+    const element = printRef.current;
+    if (!element) throw new Error("Document not ready");
+    
+    const dataUrl = await toJpeg(element, { 
+      quality: 0.98, 
+      pixelRatio: 2,
+      backgroundColor: '#ffffff'
+    });
+    
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+    
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+    pdf.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+    
+    const pdfBase64 = pdf.output("datauristring");
+    
+    if (type === "Invoice") {
+      await sendInvoiceEmail(data.id, customMessage, pdfBase64);
+    } else if (type === "Quotation") {
+      await sendQuotationEmail(data.id, customMessage, pdfBase64);
+    } else if (type === "Receipt") {
+      await sendReceiptEmail(data.id, customMessage, pdfBase64);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!printRef.current || isDownloadingPdf) return;
+    setIsDownloadingPdf(true);
+    
+    try {
+      const { toJpeg } = await import("html-to-image");
+      const { jsPDF } = await import("jspdf");
+      
+      const element = printRef.current;
+      
+      // Convert HTML node to a high-quality JPEG
+      const dataUrl = await toJpeg(element, { 
+        quality: 0.98, 
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
+      });
+      
+      // Create a new PDF and add the image
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      
+      const filename = `${type}_${numberField}.pdf`;
+      pdf.save(filename);
+      
+      toast.success("PDF downloaded successfully!");
+    } catch (error: any) {
+      console.error("PDF generation error:", error);
+      toast.error(`Failed to generate PDF: ${error.message}`);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   const handleSaveToDrive = async () => {
     if (!printRef.current || isSavingToDrive) return;
@@ -132,9 +211,12 @@ export default function DocumentPreview({ type, data, company, isServerPreview =
       {/* Top Action Bar */}
       {!isServerPreview && (
         <div className="max-w-4xl mx-auto mb-6 flex justify-end gap-3 print:hidden">
-          <button className="h-10 px-4 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors shadow-sm">
-            <Share2 size={16} />
-            Share
+          <button 
+            onClick={() => setIsEmailModalOpen(true)}
+            className="h-10 px-4 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors shadow-sm"
+          >
+            <Mail size={16} />
+            Email
           </button>
           <button 
             onClick={handleSaveToDrive} 
@@ -144,9 +226,13 @@ export default function DocumentPreview({ type, data, company, isServerPreview =
             {isSavingToDrive ? <Loader2 size={16} className="animate-spin text-accent" /> : <Cloud size={16} className="text-accent" />}
             {isSavingToDrive ? "Saving..." : "Save to Drive"}
           </button>
-          <button onClick={handlePrint} className="h-10 px-4 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors shadow-sm">
-            <Download size={16} />
-            PDF
+          <button 
+            onClick={handleDownloadPDF} 
+            disabled={isDownloadingPdf}
+            className="h-10 px-4 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50"
+          >
+            {isDownloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+            {isDownloadingPdf ? "Generating..." : "PDF"}
           </button>
           <button 
             onClick={handlePrint}
@@ -352,6 +438,13 @@ export default function DocumentPreview({ type, data, company, isServerPreview =
           </p>
         </div>
       </div>
+      
+      <EmailModal 
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        onSend={handleSendEmail}
+        documentType={type}
+      />
     </div>
   </div>
   );

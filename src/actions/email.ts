@@ -73,7 +73,7 @@ const getEmailLayout = (title: string, companyName: string, content: string, cus
 </html>
 `;
 
-export async function sendInvoiceEmail(invoiceId: string, customMessage?: string) {
+export async function sendInvoiceEmail(invoiceId: string, customMessage?: string, pdfBase64?: string) {
   try {
     const invoice = await prisma.invoice.findUnique({
       where: { id: invoiceId },
@@ -118,12 +118,24 @@ export async function sendInvoiceEmail(invoiceId: string, customMessage?: string
     const html = getEmailLayout("Invoice", invoice.company.name, content, customMessage);
     const transporter = getTransporter(invoice.company);
 
-    const info = await transporter.sendMail({
+    const mailOptions: any = {
       from: `"${invoice.company.name}" <${FROM_EMAIL}>`,
       to: invoice.client.email,
       subject: `Invoice ${invoice.invoiceNumber} from ${invoice.company.name}`,
       html,
-    });
+    };
+
+    if (pdfBase64) {
+      mailOptions.attachments = [
+        {
+          filename: `Invoice_${invoice.invoiceNumber}.pdf`,
+          content: pdfBase64.split("base64,")[1] || pdfBase64,
+          encoding: 'base64'
+        }
+      ];
+    }
+
+    const info = await transporter.sendMail(mailOptions);
 
     return { success: true, messageId: info.messageId };
   } catch (error: any) {
@@ -132,7 +144,7 @@ export async function sendInvoiceEmail(invoiceId: string, customMessage?: string
   }
 }
 
-export async function sendQuotationEmail(quotationId: string, customMessage?: string) {
+export async function sendQuotationEmail(quotationId: string, customMessage?: string, pdfBase64?: string) {
   try {
     const quotation = await prisma.quotation.findUnique({
       where: { id: quotationId },
@@ -177,12 +189,24 @@ export async function sendQuotationEmail(quotationId: string, customMessage?: st
     const html = getEmailLayout("Quotation", quotation.company.name, content, customMessage);
     const transporter = getTransporter(quotation.company);
 
-    const info = await transporter.sendMail({
+    const mailOptions: any = {
       from: `"${quotation.company.name}" <${FROM_EMAIL}>`,
       to: quotation.client.email,
       subject: `Quotation ${quotation.quotationNumber} from ${quotation.company.name}`,
       html,
-    });
+    };
+
+    if (pdfBase64) {
+      mailOptions.attachments = [
+        {
+          filename: `Quotation_${quotation.quotationNumber}.pdf`,
+          content: pdfBase64.split("base64,")[1] || pdfBase64,
+          encoding: 'base64'
+        }
+      ];
+    }
+
+    const info = await transporter.sendMail(mailOptions);
 
     return { success: true, messageId: info.messageId };
   } catch (error: any) {
@@ -191,7 +215,7 @@ export async function sendQuotationEmail(quotationId: string, customMessage?: st
   }
 }
 
-export async function sendReceiptEmail(receiptId: string, customMessage?: string) {
+export async function sendReceiptEmail(receiptId: string, customMessage?: string, pdfBase64?: string) {
   try {
     const receipt = await prisma.receipt.findUnique({
       where: { id: receiptId },
@@ -242,12 +266,24 @@ export async function sendReceiptEmail(receiptId: string, customMessage?: string
     const html = getEmailLayout("Receipt", receipt.company.name, content, customMessage);
     const transporter = getTransporter(receipt.company);
 
-    const info = await transporter.sendMail({
+    const mailOptions: any = {
       from: `"${receipt.company.name}" <${FROM_EMAIL}>`,
       to: receipt.invoice.client.email,
       subject: `Payment Receipt ${receipt.receiptNumber} from ${receipt.company.name}`,
       html,
-    });
+    };
+
+    if (pdfBase64) {
+      mailOptions.attachments = [
+        {
+          filename: `Receipt_${receipt.receiptNumber}.pdf`,
+          content: pdfBase64.split("base64,")[1] || pdfBase64,
+          encoding: 'base64'
+        }
+      ];
+    }
+
+    const info = await transporter.sendMail(mailOptions);
 
     return { success: true, messageId: info.messageId };
   } catch (error: any) {
